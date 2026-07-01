@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Eyad BinSilm | Cinematic 3D Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{--ink:#eef0f6;--mut:#9aa0b4;--cyan:#22e3ff;--violet:#9d5bff;--magenta:#ff2e88;}
+  html{scroll-behavior:smooth;}
+  body{background:#04030a;color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif;overflow-x:hidden;}
+  
+  #bg{position:fixed;inset:0;z-index:0;}
+  #fallback{position:fixed;inset:0;z-index:1;display:none;align-items:center;justify-content:center;text-align:center;background:radial-gradient(ellipse at center,#0a0814,#04030a);padding:2rem;}
+  #fallback div{max-width:440px;}#fallback h2{font-weight:800;font-size:1.4rem;margin-bottom:.6rem;}
+  #fallback p{color:var(--mut);font-size:.95rem;line-height:1.6;font-family:'Share Tech Mono',monospace;}
+  
+  #prog{position:fixed;top:0;left:0;height:4px;width:100%;transform-origin:left;transform:scaleX(0);z-index:130;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--magenta));box-shadow:0 0 16px rgba(34,227,255,.6);}
+  #cbar{position:fixed;top:0;left:0;right:0;z-index:120;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 22px 8px;background:rgba(6,8,16,.74);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08);font-family:'Share Tech Mono',monospace;font-size:13px;}
+  .cb-name{color:#eaf6ff;letter-spacing:.18em;font-weight:bold;white-space:nowrap;}
+  .cb-links{display:flex;gap:18px;flex-wrap:wrap;justify-content:flex-end;}
+  .cb-links a{color:#9aa0b4;text-decoration:none;transition:color .2s;white-space:nowrap;}
+  .cb-links a:hover{color:#22e3ff;text-shadow:0 0 8px rgba(34,227,255,.5);}
+  @media(max-width:760px){#cbar{font-size:11px;padding:8px 12px 6px;gap:8px;}.cb-name{display:none;}.cb-links{gap:11px;}}
+  .nav{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:150;display:flex;flex-direction:column;gap:12px;}
+  .dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.35);cursor:pointer;position:relative;transition:all .25s;background:transparent;}
+  .dot:hover,.dot.active{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px var(--cyan);}
+  .dot::after{content:attr(data-label);position:absolute;right:22px;top:50%;transform:translateY(-50%);font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:.06em;color:var(--ink);white-space:nowrap;background:rgba(8,10,18,.9);border:1px solid rgba(255,255,255,.15);padding:6px 12px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .dot:hover::after{opacity:1;}
+  @media(max-width:760px){.nav{display:none;}}
+  
+  #scroll{position:relative;z-index:5;pointer-events:none;}
+  
+  /* 120vh gives a slow, cinematic scroll without breaking alignment */
+  .panel{min-height:120vh;display:flex;align-items:center;padding:6rem 8vw;pointer-events:none;}
+  .panel.right{justify-content:flex-end;}
+  .panel.center{justify-content:center;text-align:center;}
+  
+  /* Increased sizes for perfect readability */
+  .card{pointer-events:auto;width:100%;max-width:540px;background:rgba(10,12,22,.65);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:2.6rem;}
+  .kick{font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:.22em;text-transform:uppercase;display:inline-flex;align-items:center;gap:12px;margin-bottom:1rem;color:var(--cyan);}
+  h1{font-weight:800;font-size:clamp(3.2rem, 7vw, 5rem);line-height:0.95;letter-spacing:-.02em;margin-bottom:1rem;}
+  h2{font-weight:800;font-size:clamp(2.4rem, 5vw, 3.8rem);line-height:1.05;letter-spacing:-.02em;margin-bottom:1rem;background:linear-gradient(100deg,var(--cyan),var(--violet),var(--magenta));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  .grad{background:linear-gradient(100deg,var(--cyan),var(--violet),var(--magenta));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  p.lead{color:var(--mut);font-size:clamp(1.15rem, 2vw, 1.3rem);line-height:1.75;}
+  
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:1.4rem;}
+  .tag{font-family:'Share Tech Mono',monospace;font-size:13px;padding:6px 14px;border-radius:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);}
+  
+  .field{margin-bottom:1.2rem;text-align:left;}
+  .field label{display:block;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:.5rem;}
+  .field input,.field textarea{width:100%;background:rgba(8,8,20,.6);border:1px solid rgba(157,91,255,.35);border-radius:12px;padding:14px 16px;color:var(--ink);font-family:inherit;font-size:1.1rem;outline:none;}
+  .field input:focus,.field textarea:focus{border-color:var(--cyan);box-shadow:0 0 18px rgba(34,227,255,.3);}
+  .field textarea{resize:vertical;min-height:90px;}
+  .send{width:100%;font-family:'Share Tech Mono',monospace;font-size:15px;letter-spacing:.06em;text-transform:uppercase;font-weight:bold;padding:16px;border-radius:30px;border:none;cursor:pointer;color:#04030a;background:linear-gradient(100deg,var(--magenta),var(--violet),var(--cyan)); transition: transform 0.2s;}
+  .send:hover{transform:translateY(-2px);}
+  .links{display:flex;flex-wrap:wrap;gap:1rem 1.6rem;justify-content:center;margin-top:1.6rem;}
+  .links a{font-family:'Share Tech Mono',monospace;font-size:15px;color:var(--cyan);text-decoration:none;text-shadow:0 0 10px rgba(34,227,255,.5);transition: color 0.2s;}
+  .links a:hover{color:#fff;}
+  
+  .hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:40;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:.12em;color:var(--mut);animation:bob 2s ease-in-out infinite;pointer-events:none;}
+  @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}
+  #tip{position:fixed;z-index:60;pointer-events:none;background:rgba(10,8,20,.95);border:1px solid rgba(157,91,255,.6);color:#fff;font-family:'Share Tech Mono',monospace;font-size:14px;padding:8px 14px;border-radius:6px;opacity:0;transform:translate(-50%,-150%);transition:opacity .15s;white-space:nowrap;box-shadow:0 0 20px rgba(157,91,255,0.3);}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div id="fallback"><div><h2>WebGL Required</h2><p>Please open this in a modern browser to view the 3D portfolio.</p></div></div>
+<div id="cbar">
+  <span class="cb-name">EYAD BINSILM</span>
+  <div class="cb-links">
+    <a href="mailto:eyadkbinsilm@gmail.com">✉ eyadkbinsilm@gmail.com</a>
+    <a href="tel:+966508806736">☎ +966 50 880 6736</a>
+    <a href="https://www.linkedin.com/in/eyad-bin-silm-430a732ab/" target="_blank" rel="noopener">in LinkedIn</a>
+    <a href="https://github.com/EyadKBS" target="_blank" rel="noopener">⌥ GitHub</a>
+  </div>
+</div>
+<div id="prog"></div>
+<div id="tip"></div>
+<div class="hint">click the red button or scroll down ↓</div>
+
+<nav class="nav">
+  <div class="dot active" data-target="sec0" data-label="Welcome"></div>
+  <div class="dot" data-target="sec1" data-label="About Me"></div>
+  <div class="dot" data-target="sec2" data-label="StadiumX"></div>
+  <div class="dot" data-target="sec3" data-label="Rawi"></div>
+  <div class="dot" data-target="sec4" data-label="Room Booking"></div>
+  <div class="dot" data-target="sec5" data-label="Unity Game"></div>
+  <div class="dot" data-target="sec6" data-label="Circuit"></div>
+  <div class="dot" data-target="sec7" data-label="Experience"></div>
+  <div class="dot" data-target="sec8" data-label="Tools"></div>
+  <div class="dot" data-target="sec10" data-label="Contact"></div>
+</nav>
+
+<div id="scroll">
+  <section class="panel center" id="sec0"></section> <!-- Welcome Zone -->
+
+  <section class="panel right" id="sec1"><div class="card">
+    <div class="kick">AI Engineer · Jeddah</div><h1 class="grad">Eyad BinSilm</h1>
+    <p class="lead">AI &amp; Computer Science graduate (GPA 4.95/5.00). I build intelligent systems that actually ship: computer vision, culturally aware language models, and full stack mobile apps.</p>
+  </div></section>
+
+  <section class="panel right" id="sec2"><div class="card">
+    <div class="kick">VAR · Edge Flow · 2026</div><h2>StadiumX</h2>
+    <p class="lead">StadiumX is a smart stadium ecosystem that pairs a computer vision VAR linesman with a fan super app. A central preprocessing server feeds four parallel inference PCs over RabbitMQ fanout exchanges, streaming instant event calls to fans through Supabase Broadcast. The vision model reaches up to 93.9% event level Average Precision (AP@60s) on SoccerNet.</p>
+    <div class="tags">
+      <span class="tag">PyTorch</span><span class="tag">YOLO</span><span class="tag">RabbitMQ</span><span class="tag">Supabase</span><span class="tag">Flutter</span>
+    </div>
+  </div></section>
+
+  <section class="panel" id="sec3"><div class="card">
+    <div class="kick">Generative AI · RAG · 2026</div><h2>Rawi</h2>
+    <p class="lead">A culturally aware Arabic storyteller (RAG) that narrates Saudi heritage in regional dialects with matched text to speech. 🥈 2nd Place, Hack the Future.</p>
+    <div class="tags"><span class="tag">LangChain</span><span class="tag">ChromaDB</span><span class="tag">Qwen2.5</span><span class="tag">Arabic NLP</span><span class="tag">Munsit TTS</span></div>
+  </div></section>
+
+  <section class="panel right" id="sec4"><div class="card">
+    <div class="kick">Mobile · Dart · 2025</div><h2>Campus Room Booking App</h2>
+    <p class="lead">A scheduling app where faculty check classroom availability, reserve open rooms, and view each room's full timetable, with an admin console to reschedule or remove classes. Built in Flutter and Dart.</p>
+    <div class="tags"><span class="tag">Flutter</span><span class="tag">Dart</span><span class="tag">Android Studio</span></div>
+  </div></section>
+
+  <section class="panel" id="sec5"><div class="card">
+    <div class="kick">Games &amp; AI · 2025</div><h2>Unity Zombie Survival</h2>
+    <p class="lead">A zombie survival game built in Unity and C#, with enemy waves, phase timers, win/loss state logic, and custom environment assets.</p>
+    <div class="tags"><span class="tag">Unity</span><span class="tag">C#</span></div>
+  </div></section>
+
+  <section class="panel right" id="sec6"><div class="card">
+    <div class="kick">Hardware · Logic · 2023</div><h2>Buffer Circuit Design</h2>
+    <p class="lead">A physical logic buffer circuit built and verified with IC chips on a breadboard: practical digital logic, signal control, and hardware debugging.</p>
+    <div class="tags"><span class="tag">Logic Circuits</span><span class="tag">IC Chips</span><span class="tag">Breadboard</span></div>
+  </div></section>
+
+  <section class="panel" id="sec7"><div class="card">
+    <div class="kick">Experience · Jun to Aug 2025</div><h2>EdfaPay Internship</h2>
+    <p class="lead">Software Engineering Intern in Riyadh. Architected the foundation of a Notification Center microservice on an event driven RabbitMQ backbone, with Microsoft Teams alerts through the Graph API.</p>
+    <div class="tags"><span class="tag">Spring Boot</span><span class="tag">Java</span><span class="tag">RabbitMQ</span><span class="tag">MS Graph API</span><span class="tag">Azure AD</span></div>
+  </div></section>
+
+  <section class="panel right" id="sec8"><div class="card">
+    <div class="kick">The Pegboard</div><h2>Tools &amp; Tech</h2>
+    <p class="lead">Languages and frameworks hanging as physical tool tiles. Hover any hexagon on the pegboard to reveal its utility. No proficiency bars, just the stack.</p>
+  </div></section>
+
+  <section class="panel center" id="sec10"><div class="card" style="max-width:580px;text-align:center;margin:0 auto;">
+    <div class="kick" style="justify-content:center;display:inline-flex">Comm Station · Jeddah</div><h2>Let's build something.</h2>
+    <div style="margin-top:1.5rem">
+      <div class="field"><input type="text" placeholder="Name"/></div>
+      <div class="field"><input type="email" placeholder="Email"/></div>
+      <div class="field"><textarea placeholder="Message"></textarea></div>
+      <button class="send" onclick="window.location.href='mailto:eyadkbinsilm@gmail.com'">Send it →</button>
+    </div>
+    <div class="links">
+      <a href="mailto:eyadkbinsilm@gmail.com">✉ Email</a>
+      <a href="https://www.linkedin.com/in/eyad-bin-silm-430a732ab/" target="_blank" rel="noopener">in LinkedIn</a>
+      <a href="https://github.com/EyadKBS" target="_blank" rel="noopener">⌥ GitHub</a>
+    </div>
+    <p style="margin-top:1.4rem;font-size:12px;color:#6a5a8a;font-family:'Share Tech Mono',monospace">© 2026 Eyad BinSilm</p>
+  </div></section>
+</div>
+
+<script>
+window.addEventListener('load', function(){
+  var fb=document.getElementById('fallback');
+  if(typeof THREE==='undefined'||typeof gsap==='undefined'||typeof ScrollTrigger==='undefined'){ if(fb) fb.style.display='flex'; return; }
+  try{ build(); }catch(e){ console.error(e); if(fb){ fb.style.display='flex'; } }
+
+  function build(){
+    gsap.registerPlugin(ScrollTrigger);
+    var canvas=document.getElementById('bg');
+    var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    renderer.setClearColor(0x04030a,1);
+
+    var scene=new THREE.Scene();
+    scene.fog=new THREE.FogExp2(0x04030a,0.012);
+    var camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
+
+    scene.add(new THREE.AmbientLight(0x404060,0.7));
+    var dir=new THREE.DirectionalLight(0x8a98c0,0.6); dir.position.set(5,12,8); scene.add(dir);
+
+    var A={players:[],nodes:[],leds:[],traces:[],rgb:[],edu:[],rain:[],steam:[],fire:[]};
+    var R={}; var hoverTargets=[];
+
+    // ---------- Helpers ----------
+    function cnv(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c;}
+    function screenPlane(pw,ph,pxw,pxh,draw){
+      var c=cnv(pxw,pxh),ctx=c.getContext('2d'); draw(ctx,pxw,pxh);
+      var t=new THREE.CanvasTexture(c);
+      var m=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),new THREE.MeshBasicMaterial({map:t,transparent:true}));
+      m.userData.ctx=ctx; m.userData.tex=t; return m;
+    }
+    function sprite(text,color,s){
+      var c=cnv(400,100),ctx=c.getContext('2d');
+      ctx.font='bold 50px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.shadowColor=color||'#fff'; ctx.shadowBlur=20; ctx.fillStyle=color||'#fff'; ctx.fillText(text,200,50);
+      var t=new THREE.CanvasTexture(c);
+      var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false}));
+      sp.scale.set(s||2,(s||2)/4,1); return sp;
+    }
+    function box(w,h,d,color,opts){ opts=opts||{}; return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),
+      opts.basic?new THREE.MeshBasicMaterial({color:color,transparent:!!opts.transparent,opacity:opts.opacity==null?1:opts.opacity})
+      :new THREE.MeshStandardMaterial({color:color,emissive:opts.emissive||0x000000,emissiveIntensity:opts.ei||0,roughness:opts.rough==null?0.7:opts.rough,metalness:opts.metal||0.2})); }
+
+    // ---------- Layout Arrays (Centered at 0, Dolly Camera Handles Left/Right) ----------
+    var ZO=-45; 
+    var Z=[0, ZO, ZO*2, ZO*3, ZO*4, ZO*5, ZO*6, ZO*7, ZO*8, ZO*9];
+    function group(i){var g=new THREE.Group(); g.position.set(0,0,Z[i]); scene.add(g); return g;}
+
+    // Starfield
+    (function(){var g=new THREE.BufferGeometry();var n=2000;var a=new Float32Array(n*3);
+      for(var i=0;i<n;i++){a[i*3]=(Math.random()-0.5)*200;a[i*3+1]=(Math.random()-0.5)*90;a[i*3+2]=-Math.random()*380;}
+      g.setAttribute('position',new THREE.BufferAttribute(a,3));
+      R.stars=new THREE.Points(g,new THREE.PointsMaterial({color:0x9fc0ff,size:0.15,transparent:true,opacity:0.8}));scene.add(R.stars);})();
+
+    // ===== ZONE 0/1 - CRT (Welcome + About) =====
+    (function(){var g=group(0);
+      g.add(box(4,3,2,0x141414,{rough:0.9}));
+      g.add(box(1.6,0.5,1,0x0e0e12,{rough:0.9}));
+      var stand=box(1.4,0.5,1,0x101014,{rough:0.9}); stand.position.set(0,-1.85,0); g.add(stand);
+      
+      R.crtScreen=screenPlane(3.4,2.4,512,384,function(ctx,w,h){
+        ctx.fillStyle='#02160c'; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle='#ff2a2a'; ctx.font='28px monospace'; ctx.textAlign='center';
+        ctx.fillText('SYSTEM STANDBY', 256, 170);
+        ctx.fillText('CLICK RED LIGHT OR', 256, 220);
+        ctx.fillText('SCROLL DOWN TO BOOT', 256, 260);
+      });
+      R.crtScreen.position.set(0,0.05,1.02); g.add(R.crtScreen);
+
+      // The Interactive Red Button
+      R.led=new THREE.Mesh(new THREE.CircleGeometry(0.12,24),new THREE.MeshBasicMaterial({color:0xff2a2a}));
+      R.led.position.set(1.4,-1.15,1.03); g.add(R.led);
+
+      // Massive invisible hitbox so clicking ANYWHERE on the monitor boots the OS
+      var hitBox = new THREE.Mesh(new THREE.BoxGeometry(6,5,3), new THREE.MeshBasicMaterial({visible:false}));
+      g.add(hitBox);
+      R.crtHitbox = hitBox;
+    })();
+
+    // ===== ZONE 2 - StadiumX / VAR =====
+    (function(){var g=group(1);
+      var grid=new THREE.GridHelper(16,16,0x35ff7a,0x0c3a1c); grid.position.y=-2; g.add(grid);
+      var pitch=new THREE.Mesh(new THREE.PlaneGeometry(16,10),new THREE.MeshStandardMaterial({color:0x07351a,roughness:1}));
+      pitch.rotation.x=-Math.PI/2; pitch.position.y=-2.02; g.add(pitch);
+      var fl1=new THREE.PointLight(0xddeeff,1.2,30); fl1.position.set(-5,7,3); g.add(fl1);
+      var fl2=new THREE.PointLight(0xddeeff,1.0,30); fl2.position.set(5,7,-2); g.add(fl2);
+      var pp=[[-3,-1.55,1],[1,-1.55,-1.5],[3.5,-1.55,1.5]];
+      for(var i=0;i<pp.length;i++){
+        var col=i===1?0xffd24d:0x9fe8ff;
+        var pl=box(0.5,0.95,0.5,0x0a1a22,{basic:false,emissive:col,ei:0.5,rough:0.5});
+        pl.position.set(pp[i][0],pp[i][1],pp[i][2]); g.add(pl);
+        var edge=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.8,1.3,0.8)),new THREE.LineBasicMaterial({color:i===1?0xffd24d:0x22e3ff}));
+        g.add(edge);
+        A.players.push({mesh:pl,box:edge,base:pp[i].slice(),ph:Math.random()*6,sp:0.6+Math.random()*0.5});
+      }
+      R.offside=box(0.05,2.2,8,0xff2e88,{basic:true}); R.offside.position.set(0,-1,0); g.add(R.offside);
+
+      // goal nets at both ends of the pitch
+      function netTexF(){var c=document.createElement('canvas');c.width=128;c.height=96;var x=c.getContext('2d');x.strokeStyle='rgba(255,255,255,0.55)';x.lineWidth=1.2;for(var i=0;i<=128;i+=9){x.beginPath();x.moveTo(i,0);x.lineTo(i,96);x.stroke();}for(var j=0;j<=96;j+=9){x.beginPath();x.moveTo(0,j);x.lineTo(128,j);x.stroke();}return new THREE.CanvasTexture(c);}
+      function buildGoal(xp,dir){var gg=new THREE.Group(); gg.position.set(xp,0,0);
+        var pm=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0x333333,roughness:0.5});
+        var GW=2.4,GH=0.95,DP=0.7,yb=-2.0,yt=yb+GH;
+        [-GW/2,GW/2].forEach(function(zz){var m=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,GH,10),pm);m.position.set(0,yb+GH/2,zz);gg.add(m);});
+        var cb=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,GW,10),pm);cb.rotation.x=Math.PI/2;cb.position.set(0,yt,0);gg.add(cb);
+        function net(){return new THREE.MeshBasicMaterial({map:netTexF(),transparent:true,opacity:0.5,side:THREE.DoubleSide});}
+        var back=new THREE.Mesh(new THREE.PlaneGeometry(GW,GH),net());back.rotation.y=Math.PI/2;back.position.set(dir*DP,yb+GH/2,0);gg.add(back);
+        var top=new THREE.Mesh(new THREE.PlaneGeometry(DP,GW),net());top.rotation.x=-Math.PI/2;top.position.set(dir*DP/2,yt,0);gg.add(top);
+        var sL=new THREE.Mesh(new THREE.PlaneGeometry(DP,GH),net());sL.position.set(dir*DP/2,yb+GH/2,-GW/2);gg.add(sL);
+        var sR=new THREE.Mesh(new THREE.PlaneGeometry(DP,GH),net());sR.position.set(dir*DP/2,yb+GH/2,GW/2);gg.add(sR);
+        return gg;}
+      g.add(buildGoal(7,1)); g.add(buildGoal(-7,-1));
+    })();
+
+    // ===== ZONE 3 - Rawi / Tent, Campfire & Book (Centered & Spread out) =====
+    (function(){var g=group(2);
+      var floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.MeshStandardMaterial({color: 0x8c6239, roughness: 1}));
+      floor.rotation.x = -Math.PI/2; floor.position.y = -2; g.add(floor);
+      
+      var tent = new THREE.Mesh(new THREE.CylinderGeometry(0, 3.5, 4, 4, 1, true), new THREE.MeshStandardMaterial({color: 0xe3d0b8, side: THREE.DoubleSide, roughness: 0.9}));
+      tent.rotation.y = Math.PI/4; tent.position.set(-3, 0, -2); g.add(tent);
+      
+      var fireLight = new THREE.PointLight(0xff6600, 2.5, 20); fireLight.position.set(0, -1, 1); g.add(fireLight);
+      R.lantern = fireLight;
+      for(var i=0; i<3; i++) {
+         var log = box(1, 0.2, 0.2, 0x3d2314, {rough:0.9}); log.position.set(0, -1.9, 1); log.rotation.y = (i * Math.PI/3); g.add(log);
+      }
+      for(var f=0; f<12; f++) {
+         var p = box(0.15, 0.15, 0.15, 0xff3300, {basic:true, transparent:true}); p.position.set(0, -1.8, 1); g.add(p); A.fire.push({m:p, offset:Math.random(), sp:0.03+Math.random()*0.04});
+      }
+
+      var bookG=new THREE.Group(); bookG.position.set(3, -1.98, 1); bookG.rotation.x = -Math.PI/2; g.add(bookG);
+      var pageTex=screenPlane(2.0,1.5,300,220,function(ctx,w,h){
+        ctx.fillStyle='#efe0bf'; ctx.fillRect(0,0,w,h);
+        ctx.strokeStyle='rgba(120,80,30,.35)'; for(var i=0;i<4;i++){ctx.beginPath();ctx.moveTo(20,40+i*30);ctx.lineTo(w-20,40+i*30);ctx.stroke();}
+      });
+      pageTex.position.set(0,0.02,0); bookG.add(pageTex);
+      var pL=box(1.0,0.04,1.5,0xe6d3a8,{rough:1}); pL.position.set(-0.5,0,0); bookG.add(pL);
+      var pR=box(1.0,0.04,1.5,0xe6d3a8,{rough:1}); pR.position.set(0.5,0,0); bookG.add(pR);
+      bookG.add(box(0.1,0.05,1.6,0x5b2f12,{rough:1}));
+    })();
+
+    // ===== ZONE 4 - Flutter / Big Silver Laptop (Centered) =====
+    (function(){var g=group(3);
+      var desk = box(10,0.3,6,0x0d1018,{rough:0.8}); desk.position.y=-1.7; g.add(desk);
+      var laptopGroup = new THREE.Group();
+      laptopGroup.scale.set(1.45, 1.45, 1.45);
+      laptopGroup.position.set(0, -0.15, 0); 
+      
+      var base=box(3,0.12,2,0xc0c0c0,{metal:0.8,rough:0.3}); base.position.set(0,-0.95,0.4); laptopGroup.add(base);
+      // EDIT 1: keyboard deck + trackpad, laid flat on the laptop base
+      var kb=screenPlane(2.7,1.8,420,280,function(ctx,w,h){
+        ctx.fillStyle='#16161b';ctx.fillRect(0,0,w,h);
+        ctx.fillStyle='#3a3a46';var cols=14,rows=5,m=10,kw=(w-m*2)/cols,kh=((h*0.58)-m*2)/rows;
+        for(var r=0;r<rows;r++)for(var c=0;c<cols;c++)ctx.fillRect(m+c*kw+1,m+r*kh+1,kw-2,kh-2);
+        ctx.fillRect(w*0.30,m+rows*kh+2,w*0.40,kh-2); // spacebar
+        ctx.fillStyle='#23232b';ctx.fillRect(w*0.33,h*0.72,w*0.34,h*0.24); // trackpad
+      });
+      kb.rotation.x=-Math.PI/2; kb.position.set(0,-0.885,0.45); laptopGroup.add(kb);
+
+      var codeTex=screenPlane(2.8,1.7,420,260,function(ctx,w,h){
+        ctx.fillStyle='#0c0e14'; ctx.fillRect(0,0,w,h); ctx.font='15px monospace';
+        var L=[['// main.dart','#546178'],['class ','#c792ea'],['  build(ctx) {','#82aaff'],['    return MaterialApp(','#82aaff'],['      theme: dark,','#c3e88d'],['      home: HomeScreen()','#f78c6c'],['    );','#82aaff'],['  }','#82aaff'],['}','#c792ea']];
+        for(var i=0;i<L.length;i++){ctx.fillStyle=L[i][1];ctx.fillText(L[i][0],16,28+i*26);}
+      });
+      codeTex.position.set(0,-0.12,-0.55); codeTex.rotation.x=-0.2; laptopGroup.add(codeTex);
+      var lid=box(3.05,1.85,0.06,0xc0c0c0,{metal:0.8,rough:0.3}); lid.position.set(0,-0.12,-0.6); lid.rotation.x=-0.2; laptopGroup.add(lid);
+      
+      var pad=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,0.06,24),new THREE.MeshStandardMaterial({color:0x14161c,emissive:0x113344,ei:0.4})); pad.position.set(2.4,-0.95,0.6); laptopGroup.add(pad);
+      var phoneTex=screenPlane(0.5,1,160,320,function(ctx,w,h){
+        ctx.fillStyle='#0b0e16';ctx.fillRect(0,0,w,h);
+        var grd=ctx.createLinearGradient(0,0,w,60);grd.addColorStop(0,'#2f6bff');grd.addColorStop(1,'#22e3ff');ctx.fillStyle=grd;ctx.fillRect(0,0,w,60);
+        ctx.fillStyle='rgba(255,255,255,.1)';for(var i=0;i<4;i++)ctx.fillRect(16,90+i*40,w-32,18);
+      });
+      phoneTex.position.set(2.4,-0.4,0.62); laptopGroup.add(phoneTex);
+      R.fab=new THREE.Mesh(new THREE.SphereGeometry(0.07,12,12),new THREE.MeshBasicMaterial({color:0x2f6bff})); R.fab.position.set(2.55,-0.7,0.66); laptopGroup.add(R.fab);
+      g.add(laptopGroup);
+    })();
+
+    // ===== ZONE 5 - Unity / FPS Game (Centered) =====
+    (function(){var g=group(4);
+      g.add((function(){var d=box(8,0.3,5,0x0a0b10,{rough:0.8});d.position.y=-1.7;return d;})());
+      var rl1=new THREE.PointLight(0xff2040,2,18); rl1.position.set(-2,1,2); g.add(rl1);
+      var rl2=new THREE.PointLight(0x33ff7a,2,18); rl2.position.set(2,1,2); g.add(rl2);
+      A.rgb.push(rl1,rl2);
+      
+      var uniTex=screenPlane(3.6,2.0,360,200,function(ctx,w,h){
+        ctx.fillStyle='#0e1014';ctx.fillRect(0,0,w,h);
+        ctx.strokeStyle='rgba(120,160,200,.15)';for(var i=0;i<8;i++){ctx.beginPath();ctx.moveTo(0,i*25);ctx.lineTo(w,i*25);ctx.stroke();}
+        ctx.fillStyle='#33ff8a';ctx.font='14px monospace';ctx.fillText('FPS_View',12,20);
+        ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(w/2 - 12, h/2); ctx.lineTo(w/2 + 12, h/2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(w/2, h/2 - 12); ctx.lineTo(w/2, h/2 + 12); ctx.stroke();
+      });
+      uniTex.position.set(-1.7, 0, -0.4); uniTex.rotation.y=0.1; g.add(uniTex);
+      var mon1=box(3.8, 2.2, 0.1, 0x14161c, {rough:0.6}); mon1.position.set(-1.7, 0, -0.46); mon1.rotation.y=0.1; g.add(mon1);
+      
+      var zombie = new THREE.Group();
+      var zHead = box(0.4, 0.4, 0.4, 0x224422); zHead.position.set(0, 1.8, 0); zombie.add(zHead);
+      var zBody = box(0.7, 1.0, 0.4, 0x1a3320); zBody.position.set(0, 1.1, 0); zombie.add(zBody);
+      var zArmL = box(0.2, 0.8, 0.2, 0x224422); zArmL.position.set(-0.5, 1.2, 0.3); zArmL.rotation.x=Math.PI/2.2; zombie.add(zArmL);
+      var zArmR = box(0.2, 0.8, 0.2, 0x224422); zArmR.position.set(0.5, 1.2, 0.3); zArmR.rotation.x=Math.PI/2.2; zombie.add(zArmR);
+      var zLegL = box(0.25, 0.8, 0.25, 0x112211); zLegL.position.set(-0.2, 0.4, 0); zombie.add(zLegL);
+      var zLegR = box(0.25, 0.8, 0.25, 0x112211); zLegR.position.set(0.2, 0.4, 0); zombie.add(zLegR);
+      zombie.position.set(-2.0, -1.5, 0.2); 
+      zombie.rotation.y = 0.2;
+      g.add(zombie);
+      R.zombie = zombie;
+
+      // EDIT 2: proper rifle. NOTE: for a Mesh, lookAt() points local +Z at the target,
+      // so the barrel/muzzle are modelled on +Z (front) and the stock/grip on -Z (back).
+      var gunG=new THREE.Group();
+      var gMetal=new THREE.MeshStandardMaterial({color:0x2b2e34,metalness:0.85,roughness:0.35});
+      var gDark=new THREE.MeshStandardMaterial({color:0x15171b,metalness:0.6,roughness:0.5});
+      gunG.add((function(){var m=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.26,0.95),gMetal);m.position.set(0,0,-0.12);return m;})());          // receiver/body
+      gunG.add((function(){var m=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.75,16),gMetal);m.rotation.x=Math.PI/2;m.position.set(0,0.03,0.55);return m;})()); // barrel (+Z front)
+      gunG.add((function(){var m=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,0.1,12),gDark);m.rotation.x=Math.PI/2;m.position.set(0,0.03,0.95);return m;})()); // muzzle (+Z front)
+      gunG.add((function(){var m=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.09,0.2),gDark);m.position.set(0,0.19,0);return m;})());           // sight
+      gunG.add((function(){var m=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.4,0.18),gDark);m.position.set(0,-0.28,-0.5);m.rotation.x=0.32;return m;})());   // grip
+      gunG.add((function(){var m=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.45,0.16),gDark);m.position.set(0,-0.33,-0.16);m.rotation.x=0.1;return m;})());  // magazine
+      gunG.add((function(){var m=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.22,0.42),gDark);m.position.set(0,-0.05,-0.78);return m;})());      // stock
+      gunG.scale.set(0.85,0.85,0.85);
+      gunG.position.set(-1.2,-1.0,1.8); g.add(gunG);
+      gunG.lookAt(R.zombie.position.clone().add(g.position).add(new THREE.Vector3(0,1.2,0))); // muzzle (+Z) aims up at the zombie's chest
+
+      var csTex=screenPlane(2.4,1.5,300,190,function(ctx,w,h){
+        ctx.fillStyle='#0c0e14';ctx.fillRect(0,0,w,h);ctx.font='14px monospace';
+        var L=[['// PlayerShoot.cs','#546178'],['void Update(){','#c792ea'],['  if(Input.Fire)','#82aaff'],['    ShootZombie();','#c3e88d'],['}','#c792ea']];
+        for(var i=0;i<L.length;i++){ctx.fillStyle=L[i][1];ctx.fillText(L[i][0],14,26+i*26);}
+      });
+      csTex.position.set(1.8,-0.3,-0.3); csTex.rotation.y=-0.2; g.add(csTex);
+      var mon2=box(2.6,1.7,0.1,0x14161c,{rough:0.6}); mon2.position.set(1.8,-0.3,-0.36); mon2.rotation.y=-0.2; g.add(mon2);
+    })();
+
+    // ===== ZONE 6 - Buffer / Circuit + Batteries (Centered & Spread) =====
+    (function(){var g=group(5);
+      // realistic breadboard - power rails, centre channel, hole grid
+      var bb=box(5.4,0.4,3.4,0xe7e3d5,{rough:0.85}); bb.position.y=-1.8; g.add(bb);
+      var holes=screenPlane(5.4,3.4,440,280,function(ctx,w,h){
+        ctx.fillStyle='#e7e3d5';ctx.fillRect(0,0,w,h);
+        function rail(y,col){ctx.strokeStyle=col;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(16,y);ctx.lineTo(w-16,y);ctx.stroke();}
+        rail(13,'#d23b3b');rail(25,'#3b6bd2');rail(h-25,'#d23b3b');rail(h-13,'#3b6bd2');
+        ctx.fillStyle='#d3cebe';ctx.fillRect(0,h/2-7,w,14);
+        ctx.fillStyle='rgba(20,20,20,.30)';
+        for(var yy=40;yy<h-34;yy+=13){ if(Math.abs(yy-h/2)<12) continue; for(var xx=18;xx<w-14;xx+=13){ctx.beginPath();ctx.arc(xx,yy,1.6,0,7);ctx.fill();} }
+      });
+      holes.rotation.x=-Math.PI/2; holes.position.set(0,-1.59,0); g.add(holes);
+
+      // DIP buffer IC straddling the centre channel, with pins
+      var ic=box(1.7,0.2,0.55,0x14141c,{rough:0.4,metal:0.3}); ic.position.set(-0.2,-1.54,0); g.add(ic);
+      g.add((function(){var m=new THREE.Mesh(new THREE.CircleGeometry(0.045,12),new THREE.MeshBasicMaterial({color:0x999999}));m.rotation.x=-Math.PI/2;m.position.set(-0.92,-1.43,0.16);return m;})());
+      for(var p=0;p<7;p++){var px=-0.8+p*0.2;
+        g.add((function(x){var m=box(0.05,0.05,0.08,0xcfcfcf,{metal:0.8,rough:0.3});m.position.set(x,-1.6,0.31);return m;})(px));
+        g.add((function(x){var m=box(0.05,0.05,0.08,0xcfcfcf,{metal:0.8,rough:0.3});m.position.set(x,-1.6,-0.31);return m;})(px));}
+
+      // LEDs poking up out of the board
+      var ledcol=[0xff4d4d,0x4dff7a,0x4db8ff];
+      for(var i=0;i<3;i++){var L=new THREE.Mesh(new THREE.SphereGeometry(0.11,12,12),new THREE.MeshBasicMaterial({color:ledcol[i]}));
+        L.position.set(0.6+i*0.75,-1.4,1.0); g.add(L); A.leds.push({mesh:L,col:ledcol[i],ph:i*0.7});}
+
+      // resistors with colour bands, in-line with each LED
+      for(var ri=0;ri<3;ri++){var rg=new THREE.Group(); rg.position.set(0.6+ri*0.75,-1.54,0.35);
+        rg.add((function(){var m=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.5,12),new THREE.MeshStandardMaterial({color:0xd9c89a,roughness:0.6}));m.rotation.x=Math.PI/2;return m;})());
+        [[-0.13,0x8b4513],[-0.02,0xd23b3b],[0.1,0xffd24d]].forEach(function(b){rg.add((function(){var m=new THREE.Mesh(new THREE.CylinderGeometry(0.062,0.062,0.03,12),new THREE.MeshStandardMaterial({color:b[1]}));m.rotation.x=Math.PI/2;m.position.z=b[0];return m;})());});
+        g.add(rg);}
+
+      // wire helpers
+      function tubeC(a,b,lift,color,rad){var mid=new THREE.Vector3((a.x+b.x)/2,(a.y+b.y)/2+lift,(a.z+b.z)/2);var crv=new THREE.CatmullRomCurve3([a,mid,b]);return new THREE.Mesh(new THREE.TubeGeometry(crv,20,rad||0.035,8,false),new THREE.MeshBasicMaterial({color:color}));}
+      function V(x,y,z){return new THREE.Vector3(x,y,z);}
+      function W(a,b,lift,c,rad){g.add(tubeC(a,b,lift,c,rad));}
+
+      // 9V battery beside the board, WIRED into the rails
+      var bat=new THREE.Mesh(new THREE.CylinderGeometry(0.33,0.33,1.7,24),new THREE.MeshStandardMaterial({color:0x1b1b1b,metalness:0.4,roughness:0.5}));
+      bat.rotation.x=Math.PI/2; bat.position.set(-3.5,-1.42,-0.2); g.add(bat);
+      g.add((function(){var m=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,0.16,16),new THREE.MeshBasicMaterial({color:0xd23b3b}));m.rotation.x=Math.PI/2;m.position.set(-3.5,-1.42,0.71);return m;})());
+      g.add((function(){var m=new THREE.Mesh(new THREE.CylinderGeometry(0.17,0.17,0.06,16),new THREE.MeshBasicMaterial({color:0x3b6bd2}));m.rotation.x=Math.PI/2;m.position.set(-3.5,-1.42,-1.07);return m;})());
+      g.add((function(){var s=sprite('+','#ff7b7b',0.8);s.position.set(-3.5,-1.0,0.71);return s;})());
+      g.add((function(){var s=sprite('-','#7bb6ff',0.9);s.position.set(-3.5,-1.0,-1.07);return s;})());
+
+      // battery terminals -> board power rails
+      W(V(-3.5,-1.42,0.71), V(-2.5,-1.55,1.45),0.5,0xd23b3b,0.04);
+      W(V(-3.5,-1.42,-1.07),V(-2.5,-1.55,-1.45),0.5,0x202020,0.04);
+      // rails -> IC supply
+      W(V(-2.3,-1.55,1.45), V(-0.8,-1.56,0.32),0.3,0xd23b3b,0.028);
+      W(V(-2.3,-1.55,-1.45),V(-0.8,-1.56,-0.32),0.3,0x202020,0.028);
+      // IC outputs -> resistors / signal jumpers
+      W(V(0.4,-1.56,-0.32),V(0.6,-1.54,0.35),0.25,0xffd24d,0.028);
+      W(V(0.6,-1.56,-0.32),V(1.35,-1.54,0.35),0.28,0x33c93f,0.028);
+      W(V(-0.2,-1.56,0.32),V(2.1,-1.54,0.35),0.4,0x3b7bff,0.028);
+      // LED returns to the ground rail
+      W(V(0.6,-1.4,1.0), V(2.5,-1.55,-1.45),0.45,0xffffff,0.026);
+      W(V(1.35,-1.4,1.0),V(2.3,-1.55,-1.45),0.4,0xbbbbbb,0.026);
+
+    })();
+
+    // ===== ZONE 7 - Experience / Server Desk (Centered) =====
+    (function(){var g=group(6);
+      g.add((function(){var d=box(8,0.3,5,0x0c0e16,{rough:0.85});d.position.y=-1.7;return d;})());
+      var base=box(3,0.12,2,0x1a1d24,{metal:0.5,rough:0.5}); base.position.set(0,-1.45,0.4); g.add(base);
+      // EDIT 1 (cont.): keyboard deck on the server-desk laptop too, for consistency
+      var kb2=screenPlane(2.7,1.8,360,240,function(ctx,w,h){
+        ctx.fillStyle='#15171c';ctx.fillRect(0,0,w,h);
+        ctx.fillStyle='#2e313a';var cols=14,rows=5,m=8,kw=(w-m*2)/cols,kh=((h*0.58)-m*2)/rows;
+        for(var r=0;r<rows;r++)for(var c=0;c<cols;c++)ctx.fillRect(m+c*kw+1,m+r*kh+1,kw-2,kh-2);
+        ctx.fillRect(w*0.30,m+rows*kh+2,w*0.40,kh-2);
+        ctx.fillStyle='#22262e';ctx.fillRect(w*0.34,h*0.72,w*0.32,h*0.24);
+      });
+      kb2.rotation.x=-Math.PI/2; kb2.position.set(0,-1.385,0.45); g.add(kb2);
+      
+      // sticky note on the desk (now with writing on it)
+      var note=screenPlane(0.9,0.9,180,180,function(ctx,w,h){
+        ctx.fillStyle='#ffe27a';ctx.fillRect(0,0,w,h);
+        ctx.fillStyle='#5a4410';ctx.font='bold 20px monospace';
+        ctx.fillText('deploy',16,52);ctx.fillText('@ 2 AM',16,86);ctx.fillText('it works!',16,120);
+      });
+      note.position.set(-2,-1.54,1); note.rotation.x=-Math.PI/2; note.rotation.z=0.2; g.add(note);
+
+      // live "ON" terminal - server logs stream in continuously
+      var tcanv=cnv(384,250),tctx=tcanv.getContext('2d');
+      R.termTex=new THREE.CanvasTexture(tcanv); R.termCtx=tctx;
+      R.termPool=['$ ./mvnw spring-boot:run','INFO Starting NotificationApplication','INFO Tomcat initialized port 8080','INFO Starting service [Tomcat]','INFO RabbitMQ connection established','INFO Declaring exchange notify.fanout','INFO Bound queue notify.teams','WARN Graph token expiring in 540s','INFO MS Graph API authorized','INFO Hibernate: insert notification','INFO Mapped {/api/notify} POST','INFO Started NotificationApp in 3.91s','INFO >> Teams alert sent ... 200 OK','INFO >> Email alert sent ... 200 OK','INFO heartbeat ok  queue=0'];
+      R.termLines=R.termPool.slice(0,7); R.termIdx=7; R.termLast=0; R.termBlink=true;
+      R.drawTerm=function(){var c=R.termCtx,w=384,h=250;
+        var bg=c.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#12502f');bg.addColorStop(1,'#072a18');c.fillStyle=bg;c.fillRect(0,0,w,h);
+        c.fillStyle='#0d6238';c.fillRect(0,0,w,30);
+        c.fillStyle='#7CFC7C';c.beginPath();c.arc(15,15,5,0,7);c.fill();c.fillStyle='#ffd24d';c.beginPath();c.arc(33,15,5,0,7);c.fill();c.fillStyle='#ff5f56';c.beginPath();c.arc(51,15,5,0,7);c.fill();
+        c.fillStyle='#bfffe0';c.font='bold 14px monospace';c.textBaseline='middle';c.fillText('eyad@edfapay: ~/notify-svc',70,16);
+        c.textBaseline='top';c.font='bold 17px monospace';
+        for(var i=0;i<R.termLines.length;i++){var ln=R.termLines[i];
+          c.fillStyle=ln.indexOf('WARN')>=0?'#ffe08a':(ln.charAt(0)==='$'?'#aef2ff':(ln.indexOf('OK')>=0?'#9dff9d':'#5dff95'));
+          c.fillText(ln,10,40+i*24);}
+        c.fillStyle='#aef2ff';c.fillText('$ '+(R.termBlink?'█':' '),10,40+R.termLines.length*24);
+        R.termTex.needsUpdate=true;};
+      R.drawTerm();
+      var lid=box(3,1.8,0.06,0x14161c,{rough:0.6}); lid.position.set(0,-0.62,-0.55); lid.rotation.x=-0.3; g.add(lid);
+      var lscr=new THREE.Mesh(new THREE.PlaneGeometry(2.72,1.58),new THREE.MeshBasicMaterial({map:R.termTex,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6})); lscr.position.set(0,-0.60,-0.475); lscr.rotation.x=-0.3; lscr.renderOrder=5; g.add(lscr);
+      var slp=new THREE.PointLight(0x4dff9a,1.15,6.5); slp.position.set(0,-0.38,0.3); g.add(slp);
+      var mug=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.26,0.55,18),new THREE.MeshStandardMaterial({color:0x222530,rough:0.5})); mug.position.set(2.2,-1.4,0.6); g.add(mug);
+      for(var s=0;s<3;s++){var st=new THREE.Mesh(new THREE.PlaneGeometry(0.14,0.5),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.0}));
+        st.position.set(2.1+s*0.1,-1,0.6); g.add(st); A.steam.push({mesh:st,ph:s*1.1});}
+      var clip=box(1.8,2.3,0.04,0x0e1420,{basic:false,emissive:0x113344,ei:0.4,rough:0.6}); clip.position.set(-2.4,-0.2,-0.3); clip.rotation.y=0.25; g.add(clip);
+    })();
+
+    // ===== ZONE 8 - Tools / Hex Pegboard (Centered) =====
+    (function(){var g=group(7);
+      var board = box(8, 6, 0.2, 0x111116, {rough: 0.9}); board.position.y=1; g.add(board);
+      var holesTex = screenPlane(8, 6, 400, 300, function(ctx, w, h){
+        ctx.fillStyle = '#111116'; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = '#050508';
+        for(var y=10; y<h; y+=20) for(var x=10; x<w; x+=20) { ctx.beginPath(); ctx.arc(x,y,4,0,7); ctx.fill(); }
+      });
+      holesTex.position.set(0, 1, 0.11); g.add(holesTex);
+
+      // ---- simplified per-tool logo drawing ----
+      function drawLogo(c,name,cx,cy,s){
+        c.lineWidth=Math.max(3,s*0.08);c.lineJoin='round';c.lineCap='round';
+        function poly(pts,fill){c.beginPath();for(var i=0;i<pts.length;i++){if(i)c.lineTo(pts[i][0],pts[i][1]);else c.moveTo(pts[i][0],pts[i][1]);}c.closePath();if(fill){c.fillStyle=fill;c.fill();}else c.stroke();}
+        function rr(x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+        if(name==='Python'){
+          c.fillStyle='#3776AB';rr(cx-0.46*s,cy-0.46*s,0.62*s,0.62*s,0.16*s);c.fill();
+          c.fillStyle='#FFD43B';rr(cx-0.16*s,cy-0.16*s,0.62*s,0.62*s,0.16*s);c.fill();
+          c.fillStyle='#fff';c.beginPath();c.arc(cx-0.27*s,cy-0.3*s,0.05*s,0,7);c.fill();c.beginPath();c.arc(cx+0.31*s,cy+0.32*s,0.05*s,0,7);c.fill();
+        }
+        else if(name==='Java'){
+          c.strokeStyle='#E76F00';c.lineWidth=s*0.06;
+          [-0.13,0.07].forEach(function(o){c.beginPath();c.moveTo(cx+o*s,cy-0.16*s);c.bezierCurveTo(cx+o*s+0.1*s,cy-0.28*s,cx+o*s-0.1*s,cy-0.4*s,cx+o*s,cy-0.52*s);c.stroke();});
+          c.fillStyle='#5382A1';rr(cx-0.34*s,cy-0.06*s,0.54*s,0.4*s,0.05*s);c.fill();
+          c.strokeStyle='#5382A1';c.lineWidth=s*0.07;c.beginPath();c.arc(cx+0.28*s,cy+0.14*s,0.12*s,-1.2,1.2);c.stroke();
+          c.lineWidth=s*0.06;c.beginPath();c.moveTo(cx-0.38*s,cy+0.46*s);c.lineTo(cx+0.26*s,cy+0.46*s);c.stroke();
+        }
+        else if(name==='Dart'){
+          poly([[cx-0.06*s,cy-0.46*s],[cx+0.44*s,cy+0.04*s],[cx+0.12*s,cy+0.04*s],[cx-0.38*s,cy-0.46*s]],'#27D7E8');
+          poly([[cx-0.42*s,cy-0.22*s],[cx+0.10*s,cy+0.46*s],[cx+0.10*s,cy+0.08*s],[cx-0.42*s,cy-0.02*s]],'#01579B');
+        }
+        else if(name==='SQL'){
+          c.strokeStyle='#7FB3FF';c.lineWidth=s*0.06;c.fillStyle='rgba(127,179,255,.25)';
+          c.beginPath();c.ellipse(cx,cy-0.32*s,0.4*s,0.14*s,0,0,7);c.fill();c.stroke();
+          c.beginPath();c.moveTo(cx-0.4*s,cy-0.32*s);c.lineTo(cx-0.4*s,cy+0.3*s);c.moveTo(cx+0.4*s,cy-0.32*s);c.lineTo(cx+0.4*s,cy+0.3*s);c.stroke();
+          c.beginPath();c.ellipse(cx,cy-0.01*s,0.4*s,0.14*s,0,0,Math.PI);c.stroke();
+          c.beginPath();c.ellipse(cx,cy+0.3*s,0.4*s,0.14*s,0,0,Math.PI);c.stroke();
+        }
+        else if(name==='PyTorch'){
+          c.fillStyle='#EE4C2C';
+          c.beginPath();c.moveTo(cx,cy-0.5*s);c.bezierCurveTo(cx+0.44*s,cy-0.04*s,cx+0.32*s,cy+0.5*s,cx,cy+0.5*s);c.bezierCurveTo(cx-0.32*s,cy+0.5*s,cx-0.44*s,cy-0.04*s,cx,cy-0.5*s);c.closePath();c.fill();
+          c.fillStyle='#fff';c.beginPath();c.arc(cx+0.13*s,cy-0.28*s,0.06*s,0,7);c.fill();
+        }
+        else if(name==='YOLO'){
+          c.strokeStyle='#19C3FB';c.lineWidth=s*0.07;var b=0.42*s,t=0.18*s;
+          [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(function(q){var x=cx+q[0]*b,y=cy+q[1]*b;c.beginPath();c.moveTo(x-q[0]*t,y);c.lineTo(x,y);c.lineTo(x,y-q[1]*t);c.stroke();});
+          c.fillStyle='#19C3FB';c.beginPath();c.arc(cx,cy,0.08*s,0,7);c.fill();
+        }
+        else if(name==='FastAPI'){
+          poly([[cx-0.02*s,cy-0.5*s],[cx-0.38*s,cy+0.06*s],[cx-0.06*s,cy+0.06*s],[cx-0.12*s,cy+0.5*s],[cx+0.38*s,cy-0.1*s],[cx+0.06*s,cy-0.1*s]],'#009688');
+        }
+        else if(name==='Flutter'){
+          poly([[cx+0.40*s,cy-0.46*s],[cx-0.30*s,cy+0.24*s],[cx-0.02*s,cy+0.24*s],[cx+0.40*s,cy-0.18*s]],'#47C5FB');
+          poly([[cx+0.40*s,cy+0.06*s],[cx+0.06*s,cy+0.40*s],[cx-0.02*s,cy+0.24*s],[cx+0.16*s,cy+0.10*s]],'#47C5FB');
+          poly([[cx+0.06*s,cy+0.40*s],[cx-0.02*s,cy+0.24*s],[cx+0.12*s,cy+0.32*s]],'#1A6FC4');
+        }
+        else if(name==='RabbitMQ'){
+          c.fillStyle='#FF6600';rr(cx-0.46*s,cy-0.46*s,0.92*s,0.92*s,0.16*s);c.fill();
+          c.fillStyle='#fff';
+          rr(cx-0.23*s,cy-0.36*s,0.13*s,0.40*s,0.05*s);c.fill();
+          rr(cx-0.04*s,cy-0.36*s,0.13*s,0.40*s,0.05*s);c.fill();
+          rr(cx-0.23*s,cy+0.02*s,0.46*s,0.30*s,0.06*s);c.fill();
+          c.fillStyle='#FF6600';rr(cx+0.05*s,cy+0.14*s,0.16*s,0.20*s,0.04*s);c.fill();
+        }
+        else if(name==='Docker'){
+          c.fillStyle='#2496ED';var bw=0.15*s,g2=0.025*s,ox=cx-0.36*s,oy=cy-0.02*s;
+          function cont(ix,iy){rr(ox+ix*(bw+g2),oy-iy*(bw+g2),bw,bw,bw*0.12);c.fill();}
+          cont(0,0);cont(1,0);cont(2,0);cont(3,0);cont(0,1);cont(1,1);cont(2,1);cont(1,2);
+          c.beginPath();c.ellipse(cx-0.02*s,cy+0.13*s,0.5*s,0.20*s,0,0,Math.PI);c.closePath();c.fill();
+          poly([[cx+0.44*s,cy+0.13*s],[cx+0.56*s,cy-0.03*s],[cx+0.5*s,cy+0.13*s]],'#2496ED');
+          c.strokeStyle='#2496ED';c.lineWidth=s*0.045;c.beginPath();c.moveTo(cx-0.46*s,cy+0.04*s);c.quadraticCurveTo(cx-0.56*s,cy-0.06*s,cx-0.48*s,cy-0.15*s);c.stroke();
+        }
+        else{c.fillStyle='#22e3ff';c.beginPath();c.arc(cx,cy,0.4*s,0,7);c.fill();}
+      }
+      function toolTile(name){var c=cnv(224,224),x=c.getContext('2d');drawLogo(x,name,112,76,68);
+        x.font='bold 30px monospace';x.textAlign='center';x.textBaseline='middle';x.shadowColor='#22e3ff';x.shadowBlur=8;x.fillStyle='#eaf6ff';x.fillText(name,112,184);
+        return new THREE.Mesh(new THREE.PlaneGeometry(1.12,1.12),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true}));}
+
+      var tools = ['Python','Java','Dart','SQL','PyTorch','YOLO','FastAPI','Flutter','RabbitMQ','Docker'];
+      for(var i=0; i<tools.length; i++) {
+        var tx = -2.8 + (i%5)*1.4; var ty = 2.8 - Math.floor(i/5)*2.5;
+        var hexCard = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.1, 6), new THREE.MeshStandardMaterial({color:0x161622, emissive:0x22e3ff, emissiveIntensity:0.18}));
+        hexCard.rotation.x = Math.PI / 2;
+        hexCard.rotation.y = Math.PI / 6; 
+        hexCard.position.set(tx, ty - 0.8, 0.34); 
+        hexCard.userData.name = tools[i]; 
+        g.add(hexCard); hoverTargets.push(hexCard);
+        var tile=toolTile(tools[i]); tile.position.set(tx, ty - 0.8, 0.42); g.add(tile);
+      }
+      var pl=new THREE.PointLight(0x9d5bff,1.4,26); pl.position.set(0,4,3); g.add(pl);
+    })();
+
+    // ===== ZONE 9 - Contact / Comm-Station =====
+    (function(){var g=group(8);
+      var glass=new THREE.Mesh(new THREE.PlaneGeometry(34,22),new THREE.MeshBasicMaterial({color:0x111126,transparent:true,opacity:0.22})); glass.position.set(0,0,-5); g.add(glass);
+      var cityGrid=new THREE.GridHelper(60,30,0x9d5bff,0x1a1140); cityGrid.position.set(0,-6,-16); g.add(cityGrid);
+      for(var b=0;b<20;b++){var bh=3+Math.random()*11;
+        var bld=box(1.4+Math.random(),bh,1.4+Math.random(),0x140d2e,{basic:false,emissive:b%3?0x2a1a5a:0x3a1060,ei:0.6,rough:0.7});
+        bld.position.set((Math.random()-0.5)*46,-6+bh/2,-12-Math.random()*16); g.add(bld);}
+      var ring=new THREE.Mesh(new THREE.TorusGeometry(2.6,0.05,12,50),new THREE.MeshBasicMaterial({color:0xff2e88})); ring.position.set(0,1,-9); g.add(ring); R.ring=ring;
+      var cl=new THREE.PointLight(0x9d5bff,1.4,40); cl.position.set(0,3,-10); g.add(cl);
+      for(var r=0;r<70;r++){var dp=new THREE.Mesh(new THREE.PlaneGeometry(0.015,0.7),new THREE.MeshBasicMaterial({color:0xaad0ff,transparent:true,opacity:0.4}));
+        dp.position.set((Math.random()-0.5)*20,Math.random()*16-2,-3-Math.random()*2); g.add(dp); A.rain.push({mesh:dp,sp:0.25+Math.random()*0.3});}
+    })();
+
+    // ---------- PERFECTLY ALIGNED CAMERA DOLLY RIG ----------
+    var lookTarget=new THREE.Vector3();
+    
+    // Look.x and Pos.x move TOGETHER like a film dolly track to prevent perspective distortion.
+    // If text is Right, Camera moves Right (+3.2). Object at 0 naturally falls to the Left of the screen.
+    var POSES=[
+      {pos:{x:0,    y:0.5, z:Z[0]+8 }, look:{x:0,    y:0,   z:Z[0]}},       // 0. Welcome (Center)
+      {pos:{x:3.4,  y:0.5, z:Z[0]+8 }, look:{x:3.4,  y:0,   z:Z[0]}},       // 1. About (Obj Left)
+      {pos:{x:3.4,  y:2.0, z:Z[1]+9 }, look:{x:3.4,  y:-1,  z:Z[1]}},       // 2. StadiumX (Obj Left)
+      {pos:{x:-3.4, y:1.5, z:Z[2]+9 }, look:{x:-3.4, y:-1.4,z:Z[2]}},       // 3. Rawi (Obj Right)
+      {pos:{x:3.4,  y:1.15,z:Z[3]+9 }, look:{x:3.4,  y:-0.8,z:Z[3]}},       // 4. Flutter (Obj Left)
+      {pos:{x:-3.4, y:1.2, z:Z[4]+9 }, look:{x:-3.4, y:0.2, z:Z[4]}},       // 5. Unity (Obj Right)
+      {pos:{x:3.4,  y:1.6, z:Z[5]+9 }, look:{x:3.4,  y:-1.4,z:Z[5]}},       // 6. Buffer (Obj Left)
+      {pos:{x:-3.4, y:1.4, z:Z[6]+9 }, look:{x:-3.4, y:-0.4,z:Z[6]}},       // 7. Experience (Obj Right)
+      {pos:{x:3.4,  y:1.5, z:Z[7]+10}, look:{x:3.4,  y:1,   z:Z[7]}},       // 8. Tools (Obj Left)
+      {pos:{x:0,    y:1.0, z:Z[8]+11}, look:{x:0,    y:0.6, z:Z[8]-4}}      // 9. Contact (Center)
+    ];
+    
+    camera.position.set(POSES[0].pos.x,POSES[0].pos.y,POSES[0].pos.z);
+    lookTarget.set(POSES[0].look.x,POSES[0].look.y,POSES[0].look.z);
+
+    var camTL=gsap.timeline({
+      scrollTrigger:{ trigger:'#scroll', start:'top top', end:'bottom bottom', scrub:1.5 } // removed snapTo for perfectly smooth scrolling
+    });
+    for(var i=0;i<9;i++){
+      var to=POSES[i+1];
+      camTL.to(camera.position,{x:to.pos.x,y:to.pos.y,z:to.pos.z,ease:'power1.inOut', duration: 1},i)
+           .to(lookTarget,{x:to.look.x,y:to.look.y,z:to.look.z,ease:'power1.inOut', duration: 1},i);
+    }
+
+    // Progress Bar + Dots
+    var dots=[].slice.call(document.querySelectorAll('.dot'));
+    var prog=document.getElementById('prog');
+    ScrollTrigger.create({trigger:'#scroll',start:'top top',end:'bottom bottom',onUpdate:function(self){
+      prog.style.transform='scaleX('+self.progress+')';
+      var idx=Math.min(9,Math.round(self.progress*9));
+      dots.forEach(function(d,k){d.classList.toggle('active',k===idx);});
+    }});
+    dots.forEach(function(d){d.addEventListener('click',function(){var t=document.getElementById(d.dataset.target);if(t)t.scrollIntoView({behavior:'smooth'});});});
+    var hint=document.querySelector('.hint');
+    ScrollTrigger.create({trigger:'#scroll',start:'top top-=60',onEnter:function(){if(hint)hint.style.opacity='0';}});
+
+    // ---------- DOM POWER BUTTON BOOT LOGIC ----------
+    var booted=false;
+    var L=['> BOOT eyad_os v4.95','> modules: vision nlp mobile  OK','> whoami','EYAD BINSILM','AI Engineer · Jeddah, SA','> cat about.txt','GPA 4.95/5.00 · ships real AI','status: open to work'];
+    var pBtn = document.getElementById('power-btn');
+    
+    function bootSystem(instant){
+      if(booted)return; booted=true; 
+      R.led.material.color.setHex(0x33ff8a);
+      if(pBtn) { pBtn.style.opacity = '0'; pBtn.style.pointerEvents = 'none'; }
+
+      var ctx=R.crtScreen.userData.ctx, tex=R.crtScreen.userData.tex;
+      var W=512,H=384,FP=28,LH=42,X0=20,Y0=46;
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function paint(lines,curOn){
+        ctx.fillStyle='#02160c';ctx.fillRect(0,0,W,H);
+        ctx.fillStyle='#33ff8a';ctx.font=FP+'px monospace';ctx.textAlign='left';ctx.textBaseline='alphabetic';
+        for(var i=0;i<lines.length;i++) ctx.fillText(lines[i],X0,Y0+i*LH);
+        if(curOn && lines.length){ var li=lines.length-1; var w=ctx.measureText(lines[li]).width; ctx.fillRect(X0+w+5,Y0+li*LH-FP*0.8,13,FP*0.92); }
+        tex.needsUpdate=true;
+      }
+      function blinkForever(){ var on=true; R.crtCur=setInterval(function(){ on=!on; paint(L.slice(),on); }, 520); }
+      if(instant || reduce){ paint(L.slice(),true); blinkForever(); return; }
+      var li=0, ci=0, shown=[''];
+      R.crtType=setInterval(function(){
+        if(li>=L.length){ clearInterval(R.crtType); blinkForever(); return; }
+        var full=L[li]; ci++; shown[li]=full.slice(0,ci); paint(shown,true);
+        if(ci>=full.length){ li++; ci=0; if(li<L.length) shown.push(''); }
+      }, 26);
+    }
+    
+    setInterval(function(){ if(!booted) R.led.material.color.setHex(R.led.material.color.getHex()===0xff2a2a?0x300505:0xff2a2a); }, 700);
+
+    // Click Raycaster OR Scroll Boot
+    var ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
+    window.addEventListener('click',function(e){
+      mouse.set((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1);
+      ray.setFromCamera(mouse,camera);
+      var hit=ray.intersectObject(R.crtHitbox);
+      if(hit.length>0) {
+          bootSystem(false);
+          document.getElementById('sec1').scrollIntoView({behavior:'smooth'}); // Auto scroll down
+      }
+    });
+    if(pBtn) pBtn.addEventListener('click', function(){ 
+      bootSystem(false); 
+      document.getElementById('sec1').scrollIntoView({behavior:'smooth'}); 
+    });
+    window.addEventListener('scroll',function(){ if(window.scrollY > 150) bootSystem(false); },{passive:true});
+
+    // ---------- Pegboard Hover Tooltip ----------
+    var tip=document.getElementById('tip'), needHover=false, mx=0,my=0;
+    window.addEventListener('mousemove',function(e){ mx=e.clientX;my=e.clientY;needHover=true; });
+    function hover(){
+      if(!needHover){return;} needHover=false;
+      mouse.set((mx/window.innerWidth)*2-1,-(my/window.innerHeight)*2+1);
+      ray.setFromCamera(mouse,camera);
+      var hit=ray.intersectObjects(hoverTargets,false);
+      if(hit.length){ tip.textContent=hit[0].object.userData.name; tip.style.left=mx+'px'; tip.style.top=my+'px'; tip.style.opacity='1'; }
+      else tip.style.opacity='0';
+    }
+
+    // ---------- Render Loop ----------
+    var clock=new THREE.Clock();
+    (function loop(){
+      var e=clock.getElapsedTime();
+      R.stars.rotation.y=e*0.008;
+      
+      A.players.forEach(function(p){ var nx=p.base[0]+Math.sin(e*p.sp+p.ph)*0.8, nz=p.base[2]+Math.cos(e*p.sp*0.7+p.ph)*0.8;
+        p.mesh.position.x=nx; p.mesh.position.z=nz; p.box.position.set(nx,p.base[1]+0.15,nz); });
+      if(R.offside) R.offside.position.x=Math.sin(e*0.6)*3;
+      
+      if(R.lantern) R.lantern.intensity=2.5+Math.sin(e*12)*0.4+Math.sin(e*25)*0.3;
+      A.fire.forEach(function(p){ p.m.position.y += p.sp; if(p.m.position.y > -0.5){ p.m.position.y = -1.8; p.m.material.opacity = 1;} else { p.m.material.opacity = 1 - (p.m.position.y + 1.8)/1.3; } });
+      
+      if(R.fab) R.fab.scale.setScalar(1+0.3*Math.sin(e*4));
+      
+      A.rgb.forEach(function(l,i){ l.intensity=1.6+Math.sin(e*2+i*2)*0.8; });
+      if(R.zombie) {
+        R.zombie.position.z = 0.2 + Math.sin(e)*0.3;
+        R.zombie.rotation.z = Math.sin(e*1.4)*0.05;
+      }
+      
+      A.leds.forEach(function(l){ l.mesh.material.color.setHex((Math.sin(e*4+l.ph*6)>0)?l.col:0x161616); });
+      
+      if(R.drawTerm){ var bl=(Math.floor(e*2)%2===0); var ch=false;
+        if(e-R.termLast>0.45){ R.termLast=e; R.termLines.push(R.termPool[R.termIdx%R.termPool.length]); R.termIdx++; if(R.termLines.length>7) R.termLines.shift(); ch=true; }
+        if(bl!==R.termBlink){ R.termBlink=bl; ch=true; }
+        if(ch) R.drawTerm(); }
+      A.steam.forEach(function(s){ var t=(e*0.5+s.ph)%2; s.mesh.position.y=-1+t*0.7; s.mesh.material.opacity=Math.max(0,0.5-t*0.25); s.mesh.scale.x=1+t; });
+      
+      if(R.ring) R.ring.rotation.z=e*0.4;
+      A.rain.forEach(function(r){ r.mesh.position.y-=r.sp; if(r.mesh.position.y<-8) r.mesh.position.y=14; });
+
+      hover();
+      camera.lookAt(lookTarget);
+      renderer.render(scene,camera);
+      requestAnimationFrame(loop);
+    })();
+
+    window.addEventListener('resize',function(){
+      camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth,window.innerHeight);
+    });
+  }
+});
+</script>
+</body>
+</html>
