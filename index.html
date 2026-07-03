@@ -16,6 +16,9 @@
 <meta name="twitter:image" content="https://eyadkbs.github.io/preview.jpg"/>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSI2NCIgeTI9IjY0IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agc3RvcC1jb2xvcj0iIzIyZTNmZiIvPjxzdG9wIG9mZnNldD0iLjUiIHN0b3AtY29sb3I9IiM5ZDViZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZjJlODgiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNSIgZmlsbD0iIzA0MDMwYSIvPjxwYXRoIGQ9Ik0yMSAxNkg0NVYyM0gyOFYyOUg0MlYzNkgyOFY0MUg0NVY0OEgyMVoiIGZpbGw9InVybCgjZykiLz48L3N2Zz4K"/>
 <link rel="alternate icon" href="favicon.ico"/>
+<script>
+window.copyEmail=function(e,el){e.preventDefault();var email="eyadkbinsilm@gmail.com";if(el.getAttribute("data-orig")===null)el.setAttribute("data-orig",el.textContent);function done(){el.textContent="✓ Copied!";setTimeout(function(){el.textContent=el.getAttribute("data-orig");},1600);}function fb(){var ta=document.createElement("textarea");ta.value=email;ta.style.position="fixed";ta.style.left="-9999px";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done();}catch(err){window.prompt("Copy this email:",email);}document.body.removeChild(ta);}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(email).then(done,fb);}else{fb();}return false;};
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -73,6 +76,8 @@
   .links{display:flex;flex-wrap:wrap;gap:1rem 1.6rem;justify-content:center;margin-top:1.6rem;}
   .links a{font-family:'Share Tech Mono',monospace;font-size:15px;color:var(--cyan);text-decoration:none;text-shadow:0 0 10px rgba(34,227,255,.5);transition: color 0.2s;}
   .links a:hover{color:#fff;}
+  .quote{font-style:italic;color:var(--ink);font-size:1.35rem;line-height:1.55;max-width:520px;margin:1.9rem auto .4rem;opacity:.94;}
+  .qby{display:block;font-family:'Share Tech Mono',monospace;font-style:normal;font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-top:.9rem;}
   
   .hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:40;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:.12em;color:var(--mut);animation:bob 2s ease-in-out infinite;pointer-events:none;}
   @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}
@@ -85,7 +90,7 @@
 <div id="cbar">
   <span class="cb-name">EYAD BINSILM</span>
   <div class="cb-links">
-    <a href="mailto:eyadkbinsilm@gmail.com">✉ eyadkbinsilm@gmail.com</a>
+    <a href="mailto:eyadkbinsilm@gmail.com" onclick="return copyEmail(event,this)">✉ eyadkbinsilm@gmail.com</a>
     <a href="tel:+966508806736">☎ +966 50 880 6736</a>
     <a href="https://www.linkedin.com/in/eyad-bin-silm" target="_blank" rel="noopener">in LinkedIn</a>
     <a href="https://github.com/EyadKBS" target="_blank" rel="noopener">⌥ GitHub</a>
@@ -103,7 +108,7 @@
   <div class="dot" data-target="sec4" data-label="Room Booking"></div>
   <div class="dot" data-target="sec5" data-label="Unity Game"></div>
   <div class="dot" data-target="sec6" data-label="Circuit"></div>
-  <div class="dot" data-target="sec7" data-label="Experience"></div>
+  <div class="dot" data-target="sec7" data-label="EdfaPay"></div>
   <div class="dot" data-target="sec8" data-label="Tools"></div>
   <div class="dot" data-target="sec10" data-label="Contact"></div>
 </nav>
@@ -149,8 +154,8 @@
   </div></section>
 
   <section class="panel" id="sec7"><div class="card">
-    <div class="kick">Experience · Jun to Aug 2025</div><h2>EdfaPay Internship</h2>
-    <p class="lead">Software Engineering Intern in Riyadh. Architected the foundation of a Notification Center microservice on an event driven RabbitMQ backbone, with Microsoft Teams alerts through the Graph API.</p>
+    <div class="kick">Backend · RabbitMQ · 2025</div><h2>Notification Center</h2>
+    <p class="lead">A notification microservice built at EdfaPay, a fintech payment gateway, on an event driven RabbitMQ backbone, delivering Microsoft Teams alerts through the Graph API.</p>
     <div class="tags"><span class="tag">Spring Boot</span><span class="tag">Java</span><span class="tag">RabbitMQ</span><span class="tag">MS Graph API</span><span class="tag">Azure AD</span></div>
   </div></section>
 
@@ -161,14 +166,9 @@
 
   <section class="panel center" id="sec10"><div class="card" style="max-width:580px;text-align:center;margin:0 auto;">
     <div class="kick" style="justify-content:center;display:inline-flex">Comm Station · Jeddah</div><h2>Let's build something.</h2>
-    <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" style="margin-top:1.5rem">
-      <div class="field"><input type="text" name="name" placeholder="Name" required/></div>
-      <div class="field"><input type="email" name="email" placeholder="Email" required/></div>
-      <div class="field"><textarea name="message" placeholder="Message" required></textarea></div>
-      <button type="submit" class="send">Send it →</button>
-    </form>
+    <p class="quote">“We can only see a short distance ahead, but we can see plenty there that needs to be done.”<span class="qby">Alan Turing</span></p>
     <div class="links">
-      <a href="mailto:eyadkbinsilm@gmail.com">✉ Email</a>
+      <a href="mailto:eyadkbinsilm@gmail.com" onclick="return copyEmail(event,this)">✉ Email</a>
       <a href="https://www.linkedin.com/in/eyad-bin-silm" target="_blank" rel="noopener">in LinkedIn</a>
       <a href="https://github.com/EyadKBS" target="_blank" rel="noopener">⌥ GitHub</a>
     </div>
